@@ -1,39 +1,47 @@
-import time
-from turtle import Screen
-from player import Player
-from car_manager import CarManager
-from scoreboard import Scoreboard
+import turtle
 
-screen = Screen()
-screen.setup(width=600, height=600)
-screen.tracer(0)
+screen = turtle.Screen()
+screen.title("U.S. States Game")
+image = "blank_states_img.gif"
+screen.addshape(image)
+turtle.shape(image)
 
-player = Player()
+import pandas
 
-screen.listen()
-screen.onkey(player.go_up, "Up")
+data = pandas.read_csv("50_states.csv")
+all_states = data.state.to_list()
 
-scoreboard = Scoreboard()
-car_manager = CarManager()
+guessed_states = []
 
-game_is_on = True
-while game_is_on:
-    time.sleep(0.1)
-    screen.update()
-    car_manager.create_cars()
-    car_manager.move_cars()
+score = 0
+while len(guessed_states) < 50:
 
-    # Detect collision with the car
-    for car in car_manager.all_cars:
-        if car.distance(player) < 20:
-            game_is_on = False
-            scoreboard.game_over()
+    answer_states = screen.textinput(title= f"{score}/50 States Correct", prompt="What are the states?").title()
+
+    if answer_states == "Exit":
+        missing_states = []
+        for states in all_states:
+            if states not in guessed_states:
+                missing_states.append(states)
+        new_data = pandas.DataFrame(missing_states)
+        new_data.to_csv("states_to_learn.csv")
+        break
+
+    if answer_states in all_states:
+        t = turtle.Turtle()
+        t.hideturtle()
+        t.penup()
+        state_data = data[data.state == answer_states]
+        t.goto(int(state_data.x), int(state_data.y))
+        t.write(answer_states)
+        guessed_states.append(answer_states)
+        score += 1
 
 
-    # Detect successfully crossing
-    if player.is_at_finish_line():
-        player.go_to_start()
-        car_manager.level_up()
-        scoreboard.increase_level()
 
-screen.exitonclick()
+# def get_mouse_click_coor(x, y):
+#     print(x, y)
+#
+# turtle.onscreenclick(get_mouse_click_coor)
+#
+# turtle.mainloop()
